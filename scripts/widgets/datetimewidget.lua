@@ -26,7 +26,7 @@ local DatetimeWidget = Class(Widget, function(self, show_icon, show_time, show_d
     self.icon:Hide()
 
     -- 时间文本部件
-    self.time_text = self.root:AddChild(Text(NUMBERFONT, 24, get_time(), {1, 0, 0, .75}))
+    self.time_text = self.root:AddChild(Text(NUMBERFONT, 24, get_time(), {0, 1, 0, .75}))
     self.time_text:Hide()
 
     -- 日期文本部件

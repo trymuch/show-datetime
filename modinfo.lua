@@ -7,8 +7,8 @@ description = [[
 
 forumthread = ""
 
-icon = ""
-icon_atlas = ""
+icon = "modicon.tex"
+icon_atlas = "modicon.xml"
 
 api_version = 10
 dst_compatible = true
