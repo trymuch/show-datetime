@@ -31,7 +31,7 @@ configuration_options = {{
     hover = "设定切换显示/隐藏日期时间的快捷键(需要按住LCTRL键)",
     label = "显示/隐藏",
     options = shortcut_keys_options,
-    default = "F10"
+    default = "KEY_F10"
 }, {
     name = "show_icon",
     hover = "设定是否显示钟表图标",
