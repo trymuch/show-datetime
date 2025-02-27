@@ -3,6 +3,15 @@ local Image = require "widgets/image"
 local Text = require "widgets/text"
 local icon_scaling = .5
 Assets = {Asset("ATLAS", "images/clock.xml"), Asset("IMAGE", "images/clock.tex")}
+
+local function get_time()
+    return os.date("%H:%M:%S")
+end
+
+local function get_date()
+    return os.date("%Y/%m/%d")
+end
+
 local DatetimeWidget = Class(Widget, function(self, show_icon, show_time, show_date)
     Widget._ctor(self, "DatetimeWidget")
     self.show_icon = show_icon
@@ -17,11 +26,11 @@ local DatetimeWidget = Class(Widget, function(self, show_icon, show_time, show_d
     self.icon:Hide()
 
     -- 时间文本部件
-    self.time_text = self.root:AddChild(Text(NUMBERFONT, 24, "00:00:00", {1, 0, 0, .75}))
+    self.time_text = self.root:AddChild(Text(NUMBERFONT, 24, get_time(), {1, 0, 0, .75}))
     self.time_text:Hide()
 
     -- 日期文本部件
-    self.date_text = self.root:AddChild(Text(NUMBERFONT, 24, "2025/02/27", {0, 1, 0, .75}))
+    self.date_text = self.root:AddChild(Text(NUMBERFONT, 24, get_date(), {0, 1, 0, .75}))
     self.date_text:Hide()
 
     -- 背景图片
@@ -118,12 +127,7 @@ function DatetimeWidget:Realign()
         handler()
     end
 end
-local function get_time()
-    return os.date("%H:%M:%S")
-end
-local function get_date()
-    return os.date("%Y/%m/%d")
-end
+
 function DatetimeWidget:UpdateTimeAndDate()
     if self.show_time then
         self.time_text.inst:DoPeriodicTask(1, function()
