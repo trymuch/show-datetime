@@ -1,6 +1,7 @@
 local Widget = require "widgets/widget"
 local Image = require "widgets/image"
 local Text = require "widgets/text"
+-- local InputHandler = require "utils/input_handler"
 local icon_scaling = .5
 Assets = {Asset("ATLAS", "images/clock.xml"), Asset("IMAGE", "images/clock.tex")}
 
@@ -14,9 +15,11 @@ end
 
 local DatetimeWidget = Class(Widget, function(self, show_icon, show_time, show_date)
     Widget._ctor(self, "DatetimeWidget")
+
     self.show_icon = show_icon
     self.show_time = show_time
     self.show_date = show_date
+
     -- 根容器
     self.root = self:AddChild(Widget("root"))
 
@@ -38,8 +41,28 @@ local DatetimeWidget = Class(Widget, function(self, show_icon, show_time, show_d
     self.bg:SetTint(1, 1, 1, 0.5)
     self.bg:MoveToBack()
     self.bg:Hide()
+
     self:Realign()
+
+    -- 每秒更新时间文本和日期文本
     self:UpdateTimeAndDate()
+
+    -- self:SetScaleMode(SCALEMODE_PROPORTIONAL)
+
+    -- 设置初始位置
+    self:SetVAnchor(ANCHOR_TOP)
+    self:SetHAnchor(ANCHOR_MIDDLE)
+    self:SetPosition(0, -30)
+    -- 部件更新注册
+    TheFrontEnd:StartUpdatingWidget(self)
+
+    -- 拖拽支持
+    self.dragging = false
+    self.mouse_x_start = 0
+    self.mouse_y_start = 0
+    self.widget_x_start = 0
+    self.widget_y_start = 0
+    self:SetClickable(true)
 end)
 
 function DatetimeWidget:Realign()
@@ -130,15 +153,49 @@ end
 
 function DatetimeWidget:UpdateTimeAndDate()
     if self.show_time then
-        self.time_text.inst:DoPeriodicTask(1, function()
-            self.time_text:SetString(get_time())
-        end)
+        self.time_text:SetString(get_time())
     end
     if self.show_date then
-        self.date_text.inst:DoPeriodicTask(1, function()
-            self.date_text:SetString(get_date())
-        end)
+        self.date_text:SetString(get_date())
     end
+end
+
+function DatetimeWidget:OnMouseButton(button, down, x, y)
+    if button == MOUSEBUTTON_LEFT then
+        if down then
+            local pos = self:GetWorldPosition() -- 获取组件在屏幕的位置
+            local widget_width, widget_height = self.bg:GetScaledSize()
+            -- 判断鼠标是否在组件内部
+            local in_widget = math.abs(x - pos.x) <= widget_width / 2 and math.abs(y - pos.y) <= widget_height / 2
+            if in_widget then
+                print("[Show Datetime] 鼠标点击在了控件内部！")
+                self.dragging = true
+                local mouse_pos = TheInput:GetScreenPosition()
+                self.mouse_x_start = mouse_pos.x
+                self.mouse_y_start = mouse_pos.y
+                local widget_pos = self:GetPosition()
+                self.widget_x_start = widget_pos.x
+                self.widget_y_start = widget_pos.y
+            end
+        else
+            self.dragging = false
+        end
+    end
+    -- if button == MOUSEBUTTON_LEFT and down then
+    --     self:FollowMouse()
+    -- else
+    --     self:StopFollowMouse()
+    -- end
+end
+
+function DatetimeWidget:OnUpdate(dt)
+    if self.dragging and TheInput:IsMouseDown(MOUSEBUTTON_LEFT) then
+        local mouse_pos = TheInput:GetScreenPosition()
+        local dx = mouse_pos.x - self.mouse_x_start
+        local dy = mouse_pos.y - self.mouse_y_start
+        self:SetPosition(self.widget_x_start + dx, self.widget_y_start + dy)
+    end
+    self:UpdateTimeAndDate()
 end
 
 return DatetimeWidget
