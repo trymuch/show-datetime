@@ -22,13 +22,13 @@ local shortcut_keys_options = {}
 for i = 1, #shortcut_keys do
     shortcut_keys_options[i] = {
         description = shortcut_keys[i],
-        hover = "按下LCTRL + " .. shortcut_keys[i] .. "切换显示/隐藏时间日期",
+        hover = "按下CTRL + " .. shortcut_keys[i] .. "切换显示/隐藏时间日期",
         data = "KEY_" .. shortcut_keys[i]
     }
 end
 configuration_options = {{
     name = "shortcut_key",
-    hover = "设定切换显示/隐藏日期时间的快捷键(需要按住LCTRL键)",
+    hover = "设定切换显示/隐藏日期时间的快捷键(需要按住CTRL键)",
     label = "显示/隐藏",
     options = shortcut_keys_options,
     default = "KEY_F10"

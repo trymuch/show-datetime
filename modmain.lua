@@ -6,31 +6,14 @@ GLOBAL.setmetatable(env, {
 
 local DatetimeWidget = require "widgets/datetimewidget"
 
-local datetimewidget = nil
 local show_icon = GetModConfigData("show_icon")
 local show_time = GetModConfigData("show_time")
 local show_date = GetModConfigData("show_date")
-
-local function init_datetimewidget()
-    datetimewidget = DatetimeWidget(show_icon, show_time, show_date)
-end
-
-AddGamePostInit(function()
-    init_datetimewidget()
-end)
-
-
 local shortcut_key = GLOBAL[GetModConfigData("shortcut_key")]
-TheInput:AddKeyHandler(function(key, down)
-    if not TheInput:IsKeyDown(KEY_CTRL) then
-        return
-    end
-    if down and key == shortcut_key then
-        if datetimewidget ~= nil then
-            datetimewidget:Kill()
-            datetimewidget = nil
-        else
-            init_datetimewidget()
-        end
-    end
-end)
+
+local function add_datetimewidget(self)
+    self.datetimewidget = self:AddChild(DatetimeWidget(show_icon, show_time, show_date, shortcut_key))
+end
+AddClassPostConstruct("screens/redux/mainscreen", add_datetimewidget)
+AddClassPostConstruct("screens/redux/multiplayermainscreen", add_datetimewidget)
+AddClassPostConstruct("widgets/controls", add_datetimewidget)

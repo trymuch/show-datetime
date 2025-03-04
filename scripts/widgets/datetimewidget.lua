@@ -1,7 +1,9 @@
 local Widget = require "widgets/widget"
 local Image = require "widgets/image"
 local Text = require "widgets/text"
--- local InputHandler = require "utils/input_handler"
+local InputHandler = require "mains/input_handler"
+local PositionRecorder = require "mains/position_recorder"
+
 local icon_scaling = .5
 Assets = {Asset("ATLAS", "images/clock.xml"), Asset("IMAGE", "images/clock.tex")}
 
@@ -13,12 +15,18 @@ local function get_date()
     return os.date("%Y/%m/%d")
 end
 
-local DatetimeWidget = Class(Widget, function(self, show_icon, show_time, show_date)
+local DatetimeWidget = Class(Widget, function(self, show_icon, show_time, show_date, toggle_key)
     Widget._ctor(self, "DatetimeWidget")
 
     self.show_icon = show_icon
     self.show_time = show_time
     self.show_date = show_date
+
+    -- 处理用户输入
+    self.input_handler = InputHandler(self, toggle_key)
+
+    -- 控件位置记录器
+    self.position_recorder = PositionRecorder(self)
 
     -- 根容器
     self.root = self:AddChild(Widget("root"))
@@ -52,17 +60,15 @@ local DatetimeWidget = Class(Widget, function(self, show_icon, show_time, show_d
     -- 设置初始位置
     self:SetVAnchor(ANCHOR_TOP)
     self:SetHAnchor(ANCHOR_MIDDLE)
-    self:SetPosition(0, -30)
+    self:SetPosition(self.position_recorder:GetPosition())
+
     -- 部件更新注册
-    TheFrontEnd:StartUpdatingWidget(self)
+    self:StartUpdating()
 
     -- 拖拽支持
-    self.dragging = false
-    self.mouse_x_start = 0
-    self.mouse_y_start = 0
-    self.widget_x_start = 0
-    self.widget_y_start = 0
     self:SetClickable(true)
+    self:MoveToFront()
+
 end)
 
 function DatetimeWidget:Realign()
@@ -161,40 +167,14 @@ function DatetimeWidget:UpdateTimeAndDate()
 end
 
 function DatetimeWidget:OnMouseButton(button, down, x, y)
-    if button == MOUSEBUTTON_LEFT then
-        if down then
-            local pos = self:GetWorldPosition() -- 获取组件在屏幕的位置
-            local widget_width, widget_height = self.bg:GetScaledSize()
-            -- 判断鼠标是否在组件内部
-            local in_widget = math.abs(x - pos.x) <= widget_width / 2 and math.abs(y - pos.y) <= widget_height / 2
-            if in_widget then
-                print("[Show Datetime] 鼠标点击在了控件内部！")
-                self.dragging = true
-                local mouse_pos = TheInput:GetScreenPosition()
-                self.mouse_x_start = mouse_pos.x
-                self.mouse_y_start = mouse_pos.y
-                local widget_pos = self:GetPosition()
-                self.widget_x_start = widget_pos.x
-                self.widget_y_start = widget_pos.y
-            end
-        else
-            self.dragging = false
-        end
+    if self.input_handler:OnMouseButton(button, down, x, y) then
+        return true
     end
-    -- if button == MOUSEBUTTON_LEFT and down then
-    --     self:FollowMouse()
-    -- else
-    --     self:StopFollowMouse()
-    -- end
+    return DatetimeWidget._base.OnMouseButton(self, button, down, x, y)
 end
 
 function DatetimeWidget:OnUpdate(dt)
-    if self.dragging and TheInput:IsMouseDown(MOUSEBUTTON_LEFT) then
-        local mouse_pos = TheInput:GetScreenPosition()
-        local dx = mouse_pos.x - self.mouse_x_start
-        local dy = mouse_pos.y - self.mouse_y_start
-        self:SetPosition(self.widget_x_start + dx, self.widget_y_start + dy)
-    end
+    self.input_handler:UpdateDragging()
     self:UpdateTimeAndDate()
 end
 
